@@ -17,7 +17,7 @@ class SystemRedis:
 
     def register(self, ip, name):
         response = requests.get(f'http://{ip}', timeout=3).json()
-        if not {'id', 'f', 'gpio'}.issubset(response.drm()):
+        if not {'id', 'f', 'gpio'}.issubset(response.keys()):
             return False
         self.r.hset(self.keys.ids, name, response["id"])
         self.r.hset(self.keys.ip_list, name, ip)
