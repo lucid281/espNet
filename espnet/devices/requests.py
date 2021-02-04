@@ -1,4 +1,5 @@
 import requests
+import simplejson
 
 GET = 'GET'
 POST = 'POST'
@@ -10,10 +11,14 @@ class DeviceRequests:
         self.site_root = site_root
 
     def _request(self, method, **kwargs) -> dict:
-        return self._session.request(**{"method": method, **kwargs}).json()
+        prepared = {"method": method, **kwargs}
+        try:
+            return self._session.request(**prepared).json()
+        except simplejson.errors.JSONDecodeError:
+            return {'error': f'Device response from {self.site_root} was not json.'}
 
-    def _base(self, url=None, **kwargs):
-        return {"url": f'http://{self.site_root}' if not url else f'http://{self.site_root}/{url}',
+    def _base(self, url='', **kwargs):
+        return {"url": f'http://{self.site_root}' + url,
                 "timeout": kwargs.get("device_requests_timeout", 2)}
 
     def get_basic(self, **kwargs):
@@ -35,3 +40,8 @@ class DeviceRequests:
         request = {**self._base('/dht22', **kwargs),
                    "data": {"read_pin": int(pin)}}
         return self._request(POST, **request)
+
+    def set_host(self, ip, **kwargs):
+        request = {**self._base('/set_host', **kwargs),
+                   "data": {"ip": ip}}
+        return self._session.request(POST, **request)

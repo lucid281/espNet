@@ -11,6 +11,18 @@ from microWebSrv import MicroWebSrv
 import esp32
 
 ID = ubinascii.hexlify(machine.unique_id()).decode("utf-8")
+ESPNET_HOST = ''
+INTERRUPT = 0
+CALLBACKS = {}
+
+
+def pin_interrupt(pin):
+    global INTERRUPT
+    INTERRUPT += 1
+    global CALLBACKS
+    s = str(pin)
+    if s not in CALLBACKS:
+        CALLBACKS[s] = True
 
 
 def get_gpio_status():
@@ -44,6 +56,16 @@ ui_page = '''\
             
             <h2>board_temp</h2>
             {board_temp}f<br />
+            
+            <h2>espnet host</h2>
+            {ESPNET_HOST}<br />
+            
+            <h2>/set_host - post</h2>
+            set host for callbacks<br />
+            <form action="/set_host" method="post">
+                ip: <input type="text" name="ip"><br />
+                <input type="submit" value="OK">
+            </form>
             
             <h2>/gpio - post</h2>
             set pin high (1) or low(0).<br />
@@ -84,7 +106,8 @@ def board(client, resp):
     resp.WriteResponseJSONOk({
         'f': esp32.raw_temperature(),
         'id': ID,
-        'gpio': get_gpio_status()
+        'gpio': get_gpio_status(),
+        'espnet_host': ESPNET_HOST,
     })
     gc.collect()
 
@@ -167,12 +190,24 @@ def dht22(client, resp):
     gc.collect()
 
 
-server = MicroWebSrv()
-if not server._started:
-    server._server = socket.socket()
-    server._server.setsockopt(socket.SOL_SOCKET,
-                              socket.SO_REUSEADDR,
-                              1)
-    server._server.bind(server._srvAddr)
-    server._server.listen(16)
-    server._serverProcess()
+@micropython.native
+@MicroWebSrv.route('/set_host', 'POST')
+def set_host(client, resp):
+    d = client.ReadRequestPostedFormData()
+    global ESPNET_HOST
+    ESPNET_HOST = d['ip']
+    resp.WriteResponseJSONOk({
+        'id': ID,
+        'status': 'OK'
+    })
+    gc.collect()
+
+
+mws = MicroWebSrv()
+if not mws._started:
+    mws._server = socket.socket()
+    mws._server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    mws._server.bind(mws._srvAddr)
+    mws._server.listen(16)
+    MicroWebSrv._startThread(mws._serverProcess)
+
