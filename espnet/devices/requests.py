@@ -22,7 +22,7 @@ class DeviceRequests:
                 "timeout": kwargs.get("device_requests_timeout", 2)}
 
     def get_basic(self, **kwargs):
-        return self._request(GET, **self._base(**kwargs))
+        return self._request(GET, **self._base('/', **kwargs))
 
     def set_gpio(self, pin, value, **kwargs):
         request = {**self._base('/gpio', **kwargs),
@@ -44,4 +44,4 @@ class DeviceRequests:
     def set_host(self, ip, **kwargs):
         request = {**self._base('/set_host', **kwargs),
                    "data": {"ip": ip}}
-        return self._session.request(POST, **request)
+        return self._request(POST, **request)
