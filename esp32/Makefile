@@ -1,17 +1,18 @@
 .ONESHELL:
 
 device = '/dev/ttyUSB0'
+firmware = 'esp32-20210902-v1.17.bin'
 
 pico:
 	picocom $(device) -b115200
 
 get-firmware:
-	wget http://micropython.org/resources/firmware/esp32-idf3-20200902-v1.13.bin
+	wget https://micropython.org/resources/firmware/$(firmware)
 
 flash:
 	esptool.py --chip esp32 --port $(device) erase_flash
 	sleep 1
-	esptool.py --chip esp32 --port $(device) --baud 460800 write_flash -z 0x1000 esp32-idf3-20200902-v1.13.bin
+	esptool.py --chip esp32 --port $(device) --baud 460800 write_flash -z 0x1000 $(firmware)
 
 ls:
 	ampy -p $(device) ls /
@@ -30,3 +31,6 @@ pr: put
 
 put-main:
 	ampy -p $(device) put main.py main.py
+
+reset:
+	ampy -p $(device) reset
