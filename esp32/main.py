@@ -11,7 +11,7 @@ from microWebSrv import MicroWebSrv
 import esp32
 
 ID = ubinascii.hexlify(machine.unique_id()).decode("utf-8")
-ESPNET_HOST = ''
+ESPNET_HOST = '0.0.0.0'
 INTERRUPT = 0
 CALLBACKS = {}
 
@@ -58,7 +58,7 @@ ui_page = '''\
             {board_temp}f<br />
             
             <h2>espnet host</h2>
-            {ESPNET_HOST}<br />
+            {espnet_host}<br />
             
             <h2>/set_host - post</h2>
             set host for callbacks<br />
@@ -96,7 +96,7 @@ ui_page = '''\
 def home(client, resp):
     resp.WriteResponseOk(contentType='text/html',
                          contentCharset='UTF-8',
-                         content=ui_page.format(id=ID, board_temp=esp32.raw_temperature()))
+                         content=ui_page.format(id=ID, board_temp=esp32.raw_temperature(), espnet_host=ESPNET_HOST))
     gc.collect()
 
 
