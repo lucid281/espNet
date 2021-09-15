@@ -3,7 +3,7 @@
 
 1. install `redis`, `picocom`, `pipenv`, `make`
 2. configure redis to use a socket @ `/var/run/redis/redis-server.sock`
-3. add user to `dialout` and `redis` groups
+3. add user to `dialout` and `redis` groups: `addgroup USER dialout`
 4. reboot
 5. clone this repo, cd to dir
 6. `pipenv install`
